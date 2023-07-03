@@ -11,8 +11,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Example {
-    id        String   @id @default(cuid())
+
+model Post {
+    id String @id @default(cuid())
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+
+
+    // Why?
+    // in mysql the string length is weird, so we set it manually to a length. 
+    // WIll need to be taken care later, since we're gonna use emojis and those sometimes take 2 spots
+    content String @db.VarChar(255)
+    authorId String
+
+    @@index([authorId])
 }
