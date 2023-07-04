@@ -1,10 +1,29 @@
 import Head from "next/head";
 import Image from "next/image";
 
+import { PostView } from "~/components/postview";
+
 import type { GetStaticProps, NextPage } from "next";
 // import Link from "next/link";
 import { api } from "~/utils/api";
 // import { LoadingPage, LoadingSpinner } from "~/components/loading";
+
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+
+  if (isLoading) return <LoadingPage />;
+
+  if (!data || data.length == 0) return <div> User has not posted yet! </div>;
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
@@ -12,8 +31,6 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   });
 
   if (!data) return <div>404</div>;
-
-  console.log(username);
 
   return (
     <>
@@ -35,6 +52,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
           data.username ?? ""
         }`}</div>
         <div className="border-b border-slate-400"> </div>
+        <ProfileFeed userId={data.id} />
       </PageLayout>
     </>
   );
@@ -44,7 +62,8 @@ import { appRouter } from "~/server/api/root";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { prisma } from "~/server/db";
 import superjson from "superjson";
-import { PageLayout } from "./layout";
+import { PageLayout } from "../components/layout";
+import { LoadingPage } from "~/components/loading";
 
 //Why not getServerSideProps? There is a simple explanation... Theo's 2:05 ~ 2:10
 export const getStaticProps: GetStaticProps = async (context) => {
