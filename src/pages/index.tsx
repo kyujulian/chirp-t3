@@ -3,7 +3,7 @@ import Link from "next/link";
 import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
 import Image from "next/image";
-import { LoadingPage } from "~/components/loading";
+import { LoadingPage, LoadingSpinner } from "~/components/loading";
 import { useState } from "react";
 
 import {
@@ -16,8 +16,20 @@ import {
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-
+import toast from "react-hot-toast";
 dayjs.extend(relativeTime);
+
+const toastFailStyle = {
+  style: {
+    border: "1px solid #9B1C1C",
+    padding: "16px",
+    color: "#9B1C1C",
+  },
+  iconTheme: {
+    primary: "#9B1C1C",
+    secondary: "#FBD5D5",
+  },
+};
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -31,11 +43,17 @@ const CreatePostWizard = () => {
       setInput("");
       ctx.posts.getAll.invalidate();
     },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0], toastFailStyle);
+      } else {
+        toast.error("fail to post", toastFailStyle);
+      }
+    },
   });
 
   if (!user) return null;
-
-  console.log(user);
 
   return (
     <div className="flex w-full gap-3 ">
@@ -52,9 +70,22 @@ const CreatePostWizard = () => {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          e.preventDefault();
+          if (e.key === "Enter") if (input !== "") mutate({ content: input });
+        }}
         disabled={isPosting}
       />
-      <button onClick={() => mutate({ content: input })}>Post</button>
+      {input !== "" && !isPosting && (
+        <button onClick={() => mutate({ content: input })} disabled={isPosting}>
+          Post
+        </button>
+      )}
+      {isPosting && (
+        <div className="flex items-center justify-center">
+          <LoadingSpinner size={20} />{" "}
+        </div>
+      )}
     </div>
   );
 };
