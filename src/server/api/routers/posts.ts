@@ -8,7 +8,7 @@ import {
   privateProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import { filterUserForClient } from "./helpers/filterUserForClient";
+import { filterUserForClient } from "../../helpers/filterUserForClient";
 
 import type { Post } from "@prisma/client";
 
@@ -50,6 +50,19 @@ const ratelimit = new Ratelimit({
 export const postsRouter = createTRPCRouter({
   //preceure is a method that generates the function that your client calls
   //public is the idea that it doesn't need to be autheticator
+
+
+  getById: publicProcedure.input(z.object({
+    id: z.string()
+  }))
+  .query(async ({ ctx, input }) => {
+    const post = await ctx.prisma.post.findUnique({
+      where: {id: input.id } 
+    });
+    if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+    return (await addUserDataToPosts([post]))[0];
+  }),
+
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.prisma.post.findMany({
       take: 100,

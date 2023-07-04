@@ -1,4 +1,8 @@
 import Head from "next/head";
+import { PageLayout } from "~/components/layout";
+import { LoadingPage } from "~/components/loading";
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
+
 import Image from "next/image";
 
 import { PostView } from "~/components/postview";
@@ -58,20 +62,8 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   );
 };
 
-import { appRouter } from "~/server/api/root";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import { prisma } from "~/server/db";
-import superjson from "superjson";
-import { PageLayout } from "../components/layout";
-import { LoadingPage } from "~/components/loading";
-
-//Why not getServerSideProps? There is a simple explanation... Theo's 2:05 ~ 2:10
 export const getStaticProps: GetStaticProps = async (context) => {
-  const ssg = createServerSideHelpers({
-    router: appRouter,
-    ctx: { prisma, userId: null },
-    transformer: superjson,
-  });
+  const ssg = generateSSGHelper();
 
   const slug = context.params?.slug;
 
