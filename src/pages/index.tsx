@@ -78,7 +78,12 @@ const CreatePostWizard = () => {
         disabled={isPosting}
       />
       {input !== "" && !isPosting && (
-        <button onClick={() => mutate({ content: input })} disabled={isPosting}>
+        <button
+          onClick={() => {
+            mutate({ content: input });
+          }}
+          disabled={isPosting}
+        >
           Post
         </button>
       )}
@@ -121,6 +126,7 @@ export default function Home() {
           {!isSignedIn && (
             <div className="flex justify-center">
               <SignUpButton />
+
               <SignInButton />
             </div>
           )}
